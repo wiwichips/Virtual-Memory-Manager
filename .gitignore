@@ -1,3 +1,10 @@
+# assignment specific
+*.pdf
+*.bin
+*.txt
+
+
+
 # Prerequisites
 *.d
 
