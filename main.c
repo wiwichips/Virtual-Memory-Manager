@@ -13,9 +13,11 @@ int main() {
 	int pageNum = 0;
 	int pageOff = 0;
 	
+	puts("i~~~~~~~logical~~~~~~~~~Page Number~~~~~Page Offset~~~~~~");
 	for(int i = 0; i < numNums; i++) {
-		printf("%i ~~ %d \n", i, nums[i]);
+		printf("%i\t%d\t\t", i, nums[i]);
 		getPageDetails(nums[i], 1024, &pageNum, &pageOff);
+		printf("%d\t\t%d\n", pageNum, pageOff);
 	}
 		
 	free(nums);
@@ -74,12 +76,7 @@ void getPageDetails(int logicalAddress, int pageSize, int* number, int* offset) 
 	int numBits = logBaseTwo(pageSize, 0);
 	
 	*number = logicalAddress >> numBits; // truncate first 10 bits
-
 	*offset = logicalAddress - ((logicalAddress >> numBits) << numBits);
-	
-	
-	printf("number = %d\n", *number);
-	printf("offset = %d\n\n", *offset);
 	
 	return;
 }
