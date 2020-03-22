@@ -21,6 +21,7 @@ int NUM_PAGE_TABLE_ENTRIES = 0;
 int SIZE = 256;
 char* BACKING_STORE = "BACKING_STORE.bin";
 int PAGE_FAULTS = 0;
+int TLB_HITS = 0;
 
 // function protos
 int getPageDetails(int logicalAddress, int pageSize, int* pageNum, int* offset);
@@ -38,10 +39,9 @@ int logBaseTwo(int x, int ret);
 // page table functions
 int pageToFrame(int pageNum); // returns frame from page number
 
-// hashmap functions
-void hashPut(int key, int value);
-int hashGet(int key);
-void hashPrint();
+// TLB functions
+void addToTLB(int pageNum, int frameNum);
+int getFrameTLB(int pageNum);
 
 // testing
 void test1();
@@ -66,18 +66,18 @@ void driver() {
 	for(int i = 0; i < numNums; i++) {
 		getPageDetails(nums[i], 256, &pageNum, &pageOff);
 		
-		tmp = pageToFrame(pageNum);
+		// tmp = pageToFrame(pageNum);
+		tmp = getFrameNumber(pageNum);
 		
-		// printf("Virtual address: %d Physical address: %d Value: %d", nums[i], tmp + pageOff, getValueFromStore(BACKING_STORE, nums[i]));
-		// puts("");
+		printf("Virtual address: %d Physical address: %d Value: %d", nums[i], tmp + pageOff, getValueFromStore(BACKING_STORE, nums[i]));
+		puts("");
 	}
 	
 	printf("Number of Translated Addresses = %d\n", numNums);
 	printf("Page Faults = %d\n", PAGE_FAULTS);
 	printf("Page Fault Rate = %.3f\n", ((float) PAGE_FAULTS) / ((float) numNums));
-	printf("TLB Hits = %d\n", 0);
-	printf("TLB Hit Rate = %.3f\n", 0.0);
-	
+	printf("TLB Hits = %d\n", TLB_HITS);
+	printf("TLB Hit Rate = %.3f\n", ((float) TLB_HITS) / ((float) numNums));
 	// free numbers
 	free(nums);
 }
@@ -114,27 +114,23 @@ char getValueFromStore(char* filename, int address) {
 }
 
 int getFrameNumber(int pageNum) {
-	int frame = -2;
-	
-	// logicalAddress version of pageNum in case need to access virtual memory
-	int logicalAddress = pageNum << logBaseTwo(SIZE, 0);
-	
+	int frame = -1;
+
 	/// first check the TLB
-	// return TLB if hit, otherwise continue
+	frame = getFrameTLB(pageNum);
+	
+	if(frame < 0) {
+		
+	} else {
+		TLB_HITS++;
+		return frame;
+	}
 	
 	/// check the page table
-	// if element is not in page table
-	if(hashGet(pageNum) < 0) {						// PAGE FAULT
-		// get it from backing store and put it in PAGE TABLE
-		hashPut(pageNum, getValueFromStore(BACKING_STORE, logicalAddress));
-	}
-	// if element is in page table
-	else {
-		
-	}
+	frame = pageToFrame(pageNum);
 	
-	// get it from the page table
-	frame = hashGet(pageNum);
+	// add the frame to the page table
+	addToTLB(pageNum, frame);
 	
 	return frame;
 }
@@ -209,9 +205,64 @@ void cleanUp() {
 	free(PAGE_TABLE);
 }
 
+// TLB functions
+void addToTLB(int pageNum, int frameNum) {
+	
+	// first check if the item is already in the TLB
+	if(getFrameTLB(pageNum) == frameNum) {
+		return; // do not add to the tlb if its already there
+	}
+	
+	// temp variables
+	Map* temp1 = NULL;
+	Map* temp2 = NULL;
+	
+	// allocate space for new value
+	Map* newMap = NULL;
+	newMap = calloc(1, sizeof(Map));
+	
+	// place the values into the new map
+	newMap->key = pageNum;
+	newMap->value = frameNum;
+	
+	// free the last element if the TLB is full
+	if(NUM_TLB_ENTRIES >= 16) {
+		free(TLB[15]);
+	} else {
+		NUM_TLB_ENTRIES++;
+	}
+	
+	// set temp1 to the new value
+	temp1 = newMap;
+	
+	// shift everything forward by 1 and add new value at the start
+	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
+		temp2 = TLB[i];
+		
+		TLB[i] = temp1;
+		
+		temp1 = temp2;
+	}
+	
+}
+
+int getFrameTLB(int pageNum) {
+	// loop through each map to determine if the key is there
+	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
+		if(TLB[i]->key == pageNum) {
+			return TLB[i]->value;
+		}
+	}
+	
+	// on failure return -1
+	return -1;
+}
 
 // page table functions
 int pageToFrame(int pageNum) {
+	// add it to the TLB
+	
+	
 	// check if its in the page
 	if(PAGE_TABLE[pageNum] < 0) {
 		PAGE_TABLE[pageNum] = NUM_PAGE_TABLE_ENTRIES * 256;
@@ -226,59 +277,4 @@ int pageToFrame(int pageNum) {
 	}
 	
 	return -1;
-}
-
-
-
-
-
-// hashmap functions
-void hashPut(int key, int value) { // BROKEN TODO
-	// create new map
-	Map* newMap = calloc(1, sizeof(Map));
-	newMap->key = key;
-	newMap->value = value;
-	
-	// temp variables
-	Map* temp = newMap;
-	Map* temp2 = NULL;
-	
-	/// add it to the queue
-	// if its the first, add it
-	if(!NUM_TLB_ENTRIES) {
-		TLB[0] = newMap;
-	}
-	
-	// append without removing if there is space
-	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
-		temp2 = TLB[i];
-		
-		TLB[i] = temp;
-		
-		temp = temp2;
-	}
-	
-	free(temp2);
-	
-	if(NUM_TLB_ENTRIES < 16) {
-		NUM_TLB_ENTRIES++;
-	}
-	
-}
-
-int hashGet(int key) {
-	
-	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
-		if(key == TLB[i]->key) {
-			return TLB[i]->value;
-		}
-	}
-	
-	return -1;
-}
-
-void hashPrint() {
-	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
-		printf("Key = %d\tValue = %d\n", TLB[i]->key, TLB[i]->value);
-	}
 }
