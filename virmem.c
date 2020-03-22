@@ -113,16 +113,21 @@ int* createFileArray(char* filename, int* numNums) {
 		
 		// put the number in the array
 		fscanf(fp, "%d", &nums[i]);	
-
-		// printf("%i ## %d \n", i, nums[i]);
+	}
+	
+	// set the number of addresses to i
+	*numNums = i;
+	
+	// subtract one if the last line is a new line as not to miss an address
+	fseek(fp, -1, SEEK_END);
+	char lastCharacter = fgetc(fp);
+	if('\n' == lastCharacter) {
+		(*numNums)--;
 	}
 	
 	// close file
 	fclose(fp);
-	
-	// set the numNums to the size of the file ( minus 1 )
-	*numNums = i - 1;
-	
+		
 	if(!nums) {
 		puts("nums == NULL");
 		return NULL;
