@@ -4,7 +4,7 @@ int main(int argc, char** argv) {
 	
 	char* filename = parseUserData(argc, argv);
 	
-	init(16, g_size);
+	init(16, SIZE);
 	virtualMemoryManager(filename);
 	cleanUp();
 	return 0;
@@ -19,11 +19,11 @@ void virtualMemoryManager(char* filename) {
 	int tmp = 0;
 	
 	for(int i = 0; i < numNums; i++) {
-		getPageDetails(nums[i], g_size, &pageNum, &pageOff);
+		getPageDetails(nums[i], SIZE, &pageNum, &pageOff);
 		tmp = getFrameNumber(pageNum);
 		
 		printf("Virtual address: %d Physical address: %d Value: %d", nums[i], tmp 
-		+ pageOff, getValueFromStore(g_backingStoreFileName, nums[i]));
+		+ pageOff, getValueFromStore(BACKING_STORE, nums[i]));
 		puts("");
 	}
 	

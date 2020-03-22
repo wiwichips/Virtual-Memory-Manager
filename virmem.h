@@ -11,10 +11,9 @@
 #include "dataStructureTLB.h"
 #include "dataStructurePageTable.h"
 
-// global variables
-int g_size = 256;
-char* g_backingStoreFileName = "BACKING_STORE.bin";
-
+// MACROS
+#define BACKING_STORE "BACKING_STORE.bin"
+#define SIZE 256
 
 // function protos
 void virtualMemoryManager(char* filename);
