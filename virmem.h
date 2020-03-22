@@ -2,15 +2,17 @@
 	Student Name			Will Pringle
 	Student ID #			1056636
 **/
-// includes
+/// includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "dataStructureTLB.h"
 #include "dataStructurePageTable.h"
 
-// MACROS
+/// MACROS
+// used to store the backing store filename
 #define BACKING_STORE "BACKING_STORE.bin"
+// used to store the size of the page table in bytes
 #define SIZE 256
 
 /// functions

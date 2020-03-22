@@ -26,12 +26,12 @@ void virtualMemoryManager(char* filename) {
 		+ pageOff, getValueFromStore(BACKING_STORE, nums[i]));
 		puts("");
 	}
-	
-	printf("Number of Translated Addresses = %d\n", numNums);
-	printf("Page Faults = %d\n", g_pageFaults);
-	printf("Page Fault Rate = %.3f\n", ((float) g_pageFaults) / ((float) numNums));
-	printf("TLB Hits = %d\n", g_hitsTLB);
-	printf("TLB Hit Rate = %.3f\n", ((float) g_hitsTLB) / ((float) numNums));
+
+	fprintf(stderr, "Number of Translated Addresses = %d\n", numNums);
+	fprintf(stderr, "Page Faults = %d\n", g_pageFaults);
+	fprintf(stderr, "Page Fault Rate = %.3f\n", ((float) g_pageFaults) / ((float) numNums));
+	fprintf(stderr, "TLB Hits = %d\n", g_hitsTLB);
+	fprintf(stderr, "TLB Hit Rate = %.3f\n", ((float) g_hitsTLB) / ((float) numNums));
 	// free numbers
 	free(nums);
 }
