@@ -1,7 +1,13 @@
 CC=gcc
 CFLAGS=-Wall -std=c11 -pedantic -g
 
-all: main
+all: virmem
 
-main: main.c
-	$(CC) main.c $(CFLAGS) -o main
+virmem: main.o
+	$(CC) main.o -o virmem
+
+main.o: main.c
+	$(CC) main.c $(CFLAGS) -c -o main.o
+
+clean:
+	rm -rf virmem main.o

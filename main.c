@@ -1,27 +1,22 @@
+/**
+	Student Name			Will Pringle
+	Student ID #			1056636
+**/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// structs
-typedef struct Map {
-   int key;
-   int value;
-} Map;
-
-// global data structures
-Map** TLB = NULL;
-int NUM_TLB_ENTRIES = 0;
+#include "dataStructureTLB.h"
+#include "dataStructurePageTable.h"
 
 
-int* PAGE_TABLE = NULL;
-int NUM_PAGE_TABLE_ENTRIES = 0;
+
 
 
 // global variables
-int SIZE = 256;
-char* BACKING_STORE = "BACKING_STORE.bin";
-int PAGE_FAULTS = 0;
-int TLB_HITS = 0;
+int g_size = 256;
+char* g_backingStoreFileName = "BACKING_STORE.bin";
+
 
 // function protos
 int getPageDetails(int logicalAddress, int pageSize, int* pageNum, int* offset);
@@ -29,32 +24,25 @@ char getValueFromStore(char* filename, int address);
 int getFrameNumber(int pageNum);
 
 // helper functions
-void driver();
+void virtualMemoryManager();
 int* createFileArray(char* filename, int* numNums);
 void init(int TLBsize, int pageTableSize);
 void cleanUp();
 
 int logBaseTwo(int x, int ret);
 
-// page table functions
-int pageToFrame(int pageNum); // returns frame from page number
-
-// TLB functions
-void addToTLB(int pageNum, int frameNum);
-int getFrameTLB(int pageNum);
 
 // testing
 void test1();
 
 int main() {
-	init(16, 256);
-	driver();
-	// test1();
+	init(16, g_size);
+	virtualMemoryManager();
 	cleanUp();
 	return 0;
 }
 
-void driver() {
+void virtualMemoryManager() {
 	// initialize variables
 	int numNums = 0;
 	int* nums = createFileArray("addresses.txt", &numNums);
@@ -64,25 +52,21 @@ void driver() {
 	int tmp = 0;
 	
 	for(int i = 0; i < numNums; i++) {
-		getPageDetails(nums[i], 256, &pageNum, &pageOff);
-		
-		// tmp = pageToFrame(pageNum);
+		getPageDetails(nums[i], g_size, &pageNum, &pageOff);
 		tmp = getFrameNumber(pageNum);
 		
-		printf("Virtual address: %d Physical address: %d Value: %d", nums[i], tmp + pageOff, getValueFromStore(BACKING_STORE, nums[i]));
+		printf("Virtual address: %d Physical address: %d Value: %d", nums[i], tmp + pageOff, getValueFromStore(g_backingStoreFileName, nums[i]));
 		puts("");
 	}
 	
 	printf("Number of Translated Addresses = %d\n", numNums);
-	printf("Page Faults = %d\n", PAGE_FAULTS);
-	printf("Page Fault Rate = %.3f\n", ((float) PAGE_FAULTS) / ((float) numNums));
-	printf("TLB Hits = %d\n", TLB_HITS);
-	printf("TLB Hit Rate = %.3f\n", ((float) TLB_HITS) / ((float) numNums));
+	printf("Page Faults = %d\n", g_pageFaults);
+	printf("Page Fault Rate = %.3f\n", ((float) g_pageFaults) / ((float) numNums));
+	printf("TLB Hits = %d\n", g_hitsTLB);
+	printf("TLB Hit Rate = %.3f\n", ((float) g_hitsTLB) / ((float) numNums));
 	// free numbers
 	free(nums);
 }
-
-
 
 int getPageDetails(int logicalAddress, int pageSize, int* pageNum, int* offset) {	
 	// check if pointers are NULL or pageSize is invalid
@@ -122,7 +106,7 @@ int getFrameNumber(int pageNum) {
 	if(frame < 0) {
 		
 	} else {
-		TLB_HITS++;
+		g_hitsTLB++;
 		return frame;
 	}
 	
@@ -134,7 +118,6 @@ int getFrameNumber(int pageNum) {
 	
 	return frame;
 }
-
 
 // helper functions
 int* createFileArray(char* filename, int* numNums) {
@@ -189,20 +172,20 @@ int logBaseTwo(int x, int ret) {
 }
 
 void init(int TLBsize, int pageTableSize) {
-	TLB = calloc(TLBsize, sizeof(Map));
+	g_TLB = calloc(TLBsize, sizeof(Map));
 	
-	PAGE_TABLE = calloc(SIZE, sizeof(int));
+	g_pageTable= calloc(pageTableSize, sizeof(int));
 	
 	// initialize all values in page table to -1
-	memset(PAGE_TABLE, -1, SIZE * sizeof(int));
+	memset(g_pageTable, -1, pageTableSize * sizeof(int));
 }
 
 void cleanUp() {
-	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
-		free(TLB[i]);
+	for(int i = 0; i < g_numEntriesTLB; i++) {
+		free(g_TLB[i]);
 	}
-	free(TLB);
-	free(PAGE_TABLE);
+	free(g_TLB);
+	free(g_pageTable);
 }
 
 // TLB functions
@@ -226,20 +209,20 @@ void addToTLB(int pageNum, int frameNum) {
 	newMap->value = frameNum;
 	
 	// free the last element if the TLB is full
-	if(NUM_TLB_ENTRIES >= 16) {
-		free(TLB[15]);
+	if(g_numEntriesTLB >= 16) {
+		free(g_TLB[15]);
 	} else {
-		NUM_TLB_ENTRIES++;
+		g_numEntriesTLB++;
 	}
 	
 	// set temp1 to the new value
 	temp1 = newMap;
 	
 	// shift everything forward by 1 and add new value at the start
-	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
-		temp2 = TLB[i];
+	for(int i = 0; i < g_numEntriesTLB; i++) {
+		temp2 = g_TLB[i];
 		
-		TLB[i] = temp1;
+		g_TLB[i] = temp1;
 		
 		temp1 = temp2;
 	}
@@ -248,9 +231,9 @@ void addToTLB(int pageNum, int frameNum) {
 
 int getFrameTLB(int pageNum) {
 	// loop through each map to determine if the key is there
-	for(int i = 0; i < NUM_TLB_ENTRIES; i++) {
-		if(TLB[i]->key == pageNum) {
-			return TLB[i]->value;
+	for(int i = 0; i < g_numEntriesTLB; i++) {
+		if(((Map*)g_TLB[i])->key == pageNum) {
+			return ((Map*)g_TLB[i])->value;
 		}
 	}
 	
@@ -264,16 +247,16 @@ int pageToFrame(int pageNum) {
 	
 	
 	// check if its in the page
-	if(PAGE_TABLE[pageNum] < 0) {
-		PAGE_TABLE[pageNum] = NUM_PAGE_TABLE_ENTRIES * 256;
-		NUM_PAGE_TABLE_ENTRIES++;
-		PAGE_FAULTS++;
-		return PAGE_TABLE[pageNum];
+	if(g_pageTable[pageNum] < 0) {
+		g_pageTable[pageNum] = g_numEntriesPageTable * g_size;
+		g_numEntriesPageTable++;
+		g_pageFaults++;
+		return g_pageTable[pageNum];
 	}
 	
 	// return the page table
 	else {
-		return PAGE_TABLE[pageNum];
+		return g_pageTable[pageNum];
 	}
 	
 	return -1;
