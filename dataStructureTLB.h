@@ -2,9 +2,12 @@
 	Student Name			Will Pringle
 	Student ID #			1056636
 **/
+/// includes
+#include <stdlib.h>
+
 /// TLB data structure global variable
 // holds the maps from page number to frame number
-void** g_TLB = NULL;
+void** g_TLB = 0;
 
 /// global member variables
 // number of entries

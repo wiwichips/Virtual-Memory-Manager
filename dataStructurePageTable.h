@@ -2,10 +2,12 @@
 	Student Name			Will Pringle
 	Student ID #			1056636
 **/
+/// includes
+#include <stdlib.h>
 
 /// page table structure global variable
 // holds the hashmap between all page numbers and all frame numbers
-int* g_pageTable = NULL;
+int* g_pageTable = 0;
 
 /// global member variables
 // number of entries
