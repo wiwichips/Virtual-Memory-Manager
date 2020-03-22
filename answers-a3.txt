@@ -1,0 +1,80 @@
+################################################################################
+
+Q1
+1024 = 2^10 ∴ the first ten bits are dedicated to offset.
+
+a. 3085
+    3085(base10) = 110000001101(base2)
+                     XXXXXXXXXX
+    truncating the bits afer the first 10 leaves 0000001101(base2) = 13(base10)
+    truncating the first ten bits leaves 11(base2) = 3(base10)
+    ∴
+    Page Offset = 13
+    Page Number = 3
+
+
+b. 42095
+    42095(base10) = 1010010001101111(base2)
+                          XXXXXXXXXX
+    truncating the bits afer the first 10 leaves 0001101111(base2) = 111(base10)
+    truncating the first ten bits leaves 101001(base2) = 41(base10)
+    ∴
+    Page Offset = 111
+    Page Number = 41
+
+
+c. 215201
+    215201(base10) = 110100100010100001(base2)
+                            XXXXXXXXXX
+    truncating the bits afer the first 10 leaves 0010100001(base2) = 161(base10)
+    truncating the first ten bits leaves 11010010(base2) = 210(base10)
+    ∴
+    Page Offset = 161
+    Page Number = 210
+
+
+d. 650000
+    650000(base10) = 10011110101100010000(base2)
+                               XXXXXXXXXX
+    truncating the bits afer the first 10 leaves 1100010000(base2) = 784(base10)
+    truncating the first ten bits leaves 1001111010(base2) = 634(base10)
+    ∴
+    Page Offset = 784
+    Page Number = 634
+
+
+e. 2000001
+    2000001(base10) = 111101000010010000001(base2)
+                                XXXXXXXXXX
+    truncating the bits afer the first 10 leaves 0010000001(base2) = 129(base10)
+    truncating the first ten bits leaves 11110100001(base2) = 1953(base10)
+    ∴
+    Page Offset = 129
+    Page Number = 1953
+
+################################################################################
+
+Q2
+
+a.
+    logical address size = 2^m = 256 * 4096 = 1048576
+    log base 2 of 1048576 = 20 ∴ m = 20
+    there are 20 bits in the logical address.
+
+b.
+    physical address size = 2^(number of bits) = 64 * 4096 = 262144
+    log base 2 of 262144 = 18 ∴ number of bits = 18
+    the number of required bits in the physical address is 18.
+
+################################################################################
+
+Q3 PF represents Page fault
+
+    FRAMES  PF LRU      PF FIFO     PF Optimal
+    1.      20          20          20
+    2.      18          18          15
+    3.      15          16          11
+    4.      10          14          8
+    5.      8           10          7
+    6.      7           10          7
+    7.      7           7           7
