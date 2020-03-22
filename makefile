@@ -8,3 +8,5 @@ virmem: virmem.c
 
 clean:
 	rm -rf *.o
+
+zip: 
