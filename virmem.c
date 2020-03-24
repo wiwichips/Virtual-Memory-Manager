@@ -113,6 +113,9 @@ int* createFileArray(char* filename, int* numNums) {
 		
 		// put the number in the array
 		fscanf(fp, "%d", &nums[i]);	
+		
+		// mask it so its only 16 bits
+		nums[i] = nums[i] & 65535;
 	}
 	
 	// set the number of addresses to i
@@ -215,10 +218,7 @@ int getFrameTLB(int pageNum) {
 }
 
 // page table functions
-int pageToFrame(int pageNum) {
-	// add it to the TLB
-	
-	
+int pageToFrame(int pageNum) {	
 	// check if its in the page
 	if(g_pageTable[pageNum] < 0) {
 		g_pageTable[pageNum] = g_numEntriesPageTable * 256;
